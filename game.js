@@ -24,10 +24,10 @@ window.jumpToBoss=()=>{
     gameState.level=6; gameState.coins=0; updateHUD(); resetLevel();
 };
 window.sendFeedback=()=>{
-    const email = "benjamincsauer@gmail.com";
-    const subject = encodeURIComponent("Craftmine Game Feedback");
-    const body = encodeURIComponent("Enter your feedback here:\n\nPlayer Name: " + (gameState.playerName || "Steve") + "\nLevel Reached: " + gameState.level);
-    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+    const repo = "turtle-tech-lgtm/craftmine";
+    const title = encodeURIComponent("Feedback from " + (gameState.playerName || "Steve"));
+    const body = encodeURIComponent("## Game Feedback\n\n**Player:** " + (gameState.playerName || "Steve") + "\n**Level reached:** " + gameState.level + "\n\n**Message:**\n(Enter your feedback here)");
+    window.open(`https://github.com/${repo}/issues/new?title=${title}&body=${body}`, '_blank');
 };
 
 const config={type:Phaser.AUTO,width:800,height:600,parent:'game-container',physics:{default:'arcade',arcade:{gravity:{y:1400},debug:false}},scene:{preload:function(){sceneRef=this;},create:create,update:update}};
