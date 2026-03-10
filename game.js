@@ -17,7 +17,12 @@ window.showLeaderboard=()=>{
     document.getElementById('top-players').style.display='block';
 };
 window.hideLeaderboard=()=>{document.getElementById('top-players').style.display='none';document.getElementById('main-menu').style.display='block';};
-window.jumpToBoss=()=>{gameState.level=6; gameState.coins=0; updateHUD(); resetLevel();};
+window.jumpToBoss=()=>{
+    document.getElementById('level-clear').style.display='none';
+    document.getElementById('game-over').style.display='none';
+    document.getElementById('pause-menu').style.display='none';
+    gameState.level=6; gameState.coins=0; updateHUD(); resetLevel();
+};
 window.sendFeedback=()=>{
     const email = "benjamincsauer@gmail.com";
     const subject = encodeURIComponent("Craftmine Game Feedback");
