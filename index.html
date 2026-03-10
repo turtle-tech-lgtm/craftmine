@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Scroller</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #222;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        #game-container {
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            border: 4px solid #555;
+        }
+        .ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+        }
+        .ui-layer * {
+            pointer-events: auto;
+        }
+        .menu {
+            background: rgba(0, 0, 0, 0.85);
+            padding: 30px;
+            border: 4px solid #fff;
+            display: none;
+            max-width: 500px;
+        }
+        .menu h1 { margin-top: 0; color: #55ff55; }
+        .btn {
+            background: #555;
+            color: white;
+            border: 2px solid #fff;
+            padding: 8px 16px;
+            margin: 10px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        .btn:hover { background: #777; }
+        input[type="text"] {
+            background: #333;
+            color: white;
+            border: 2px solid #fff;
+            padding: 10px;
+            font-size: 18px;
+            font-family: inherit;
+            margin-bottom: 10px;
+            width: 250px;
+            text-align: center;
+        }
+        #hud {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            font-size: 24px;
+            text-shadow: 1px 1px #fff;
+            color: #222;
+        }
+        #top-players {
+            display: none;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border: 4px solid #ffd700;
+            min-width: 300px;
+        }
+        .leaderboard-entry {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            font-size: 20px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 5px;
+        }
+        .controls-list {
+            text-align: left;
+            margin: 15px 0;
+            font-size: 16px;
+            color: #ddd;
+            border-top: 1px solid #555;
+            padding-top: 10px;
+        }
+        .controls-list div { margin-bottom: 5px; }
+        .key { color: #ffff55; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="hud">
+            <div id="stats-left">Level: 1 | Coins: 0/20</div>
+            <div id="secret-boss-btn" style="width: 20px; height: 20px; cursor: pointer; pointer-events: auto; opacity: 0.1;" onclick="window.jumpToBoss()">🐉</div>
+            <div id="stats-right">Time: 0.0s | HP: ❤️❤️❤️</div>
+        </div>
+
+        <div class="ui-layer" id="ui-main">
+            <!-- Main Menu -->
+            <div class="menu" id="main-menu" style="display: block;">
+                <h1>MINECRAFT SCROLLER</h1>
+                <div style="margin-bottom: 20px;">
+                    <input type="text" id="player-name" placeholder="ENTER NAME" maxlength="12">
+                </div>
+                <div class="controls-list">
+                    <div><span class="key">A / D</span> - Move Left / Right</div>
+                    <div><span class="key">W / SPACE</span> - Jump</div>
+                    <div><span class="key">J / K</span> - Sword / Bow</div>
+                    <div><span class="key">L / U</span> - Shield / Pickaxe</div>
+                    <div><span class="key">I</span> - Place Block</div>
+                </div>
+                <button class="btn" onclick="window.startGame()">START GAME</button>
+                <button class="btn" onclick="window.showLeaderboard()">TOP PLAYERS</button>
+                <button class="btn" style="background: #444; font-size: 14px;" onclick="window.sendFeedback()">SEND FEEDBACK</button>
+            </div>
+
+            <!-- Pause Menu -->
+            <div class="menu" id="pause-menu">
+                <h1>PAUSED</h1>
+                <button class="btn" onclick="window.resumeGame()">RESUME</button>
+                <button class="btn" onclick="window.restartLevel()">RESTART LEVEL</button>
+                <button class="btn" onclick="window.quitToMenu()">QUIT</button>
+            </div>
+
+            <div class="menu" id="game-over">
+                <h1 style="color: #ff5555;">YOU DIED!</h1>
+                <button class="btn" onclick="window.restartLevel()">RESPAWN</button>
+                <button class="btn" onclick="window.quitToMenu()">QUIT</button>
+            </div>
+
+            <div class="menu" id="level-clear">
+                <h1 style="color: #ffff55;">LEVEL CLEAR!</h1>
+                <p id="level-time"></p>
+                <button class="btn" onclick="window.nextLevel()">NEXT LEVEL</button>
+            </div>
+
+            <!-- Win Menu -->
+            <div class="menu" id="victory-screen">
+                <h1 style="color: #55ffff;">YOU WIN!</h1>
+                <p id="winner-name" style="font-size: 22px; margin-bottom: 5px;"></p>
+                <p>The Ender Dragon has been defeated!</p>
+                <p id="total-time" style="font-size: 24px; color: #ffff55;"></p>
+                <button class="btn" onclick="window.quitToMenu()">BACK TO MENU</button>
+                <div style="margin-top: 10px;">
+                    <button class="btn" style="background: #444; font-size: 14px;" onclick="window.sendFeedback()">SEND FEEDBACK</button>
+                </div>
+            </div>
+
+            <div id="top-players">
+                <h1 style="color: #ffd700;">TOP PLAYERS</h1>
+                <div id="leaderboard-list"></div>
+                <button class="btn" onclick="window.hideLeaderboard()">BACK</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js?v=4"></script>
+</body>
+</html>
