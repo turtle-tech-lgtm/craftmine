@@ -19,8 +19,10 @@ window.showLeaderboard=()=>{
 window.hideLeaderboard=()=>{document.getElementById('top-players').style.display='none';document.getElementById('main-menu').style.display='block';};
 window.jumpToBoss=()=>{gameState.level=6;resetLevel();};
 window.sendFeedback=()=>{
-    const f = prompt("Enter your feedback for Minecraft Scroller:");
-    if(f) alert("Thank you! Your feedback has been recorded (simulated).");
+    const email = "benjamincsauer@gmail.com";
+    const subject = encodeURIComponent("Craftmine Game Feedback");
+    const body = encodeURIComponent("Enter your feedback here:\n\nPlayer Name: " + (gameState.playerName || "Steve") + "\nLevel Reached: " + gameState.level);
+    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
 };
 
 const config={type:Phaser.AUTO,width:800,height:600,parent:'game-container',physics:{default:'arcade',arcade:{gravity:{y:1400},debug:false}},scene:{preload:function(){sceneRef=this;},create:create,update:update}};
