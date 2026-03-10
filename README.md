@@ -28,7 +28,9 @@ A 2D side-scrolling Minecraft-inspired adventure built with Phaser 3. Traverse d
 - **Leaderboard**: Compete for the fastest total time!
 
 ## 🚀 Play Now
-If you are viewing this on GitHub Pages, just hit **Start Game** above! 
+Click the link below to play the game instantly in your browser:
+
+[**PLAY CRAFTMINE LIVE**](https://turtle-tech-lgtm.github.io/craftmine/)
 
 ---
 *Created with ❤️ by the Craftmine Team.*
