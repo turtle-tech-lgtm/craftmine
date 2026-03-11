@@ -1,4 +1,4 @@
-/** Minecraft Scroller - v18.0 (Audio Added) */
+/** Minecraft Scroller - v20.0 (Fast Shield Reload) */
 const Audio = {
     ctx: new (window.AudioContext || window.webkitAudioContext)(),
     play(freq, type, duration, vol=0.1) {
@@ -65,32 +65,25 @@ function create(){
     this.physics.add.collider(arrows,platforms,a=>a.destroy());this.physics.add.collider(enemyArrows,platforms,a=>a.destroy());this.physics.add.collider(fireballs,platforms,f=>f.destroy());
     this.physics.add.overlap(player,coins,(p,c)=>{c.destroy();gameState.coins++;Audio.coin();updateHUD();if(gameState.coins>=20)levelClear();});
     
-    const handleCollision = (p, source, isProjectile = false) => {
-        if (gameState.playerInvuln) return;
-        const isFacing = (p.flipX && source.x < p.x) || (!p.flipX && source.x > p.x);
-        if (gameState.shieldActive && isFacing && !gameState.shieldReloading) {
-            Audio.block();
-            if (!isProjectile) source.setVelocityX(source.x < p.x ? -600 : 600);
-            triggerShieldReload();
-            return;
-        }
-        takeDamage(1);
-        if (isProjectile) source.destroy();
+    const hC=(p,s,isP=false)=>{
+        if(gameState.playerInvuln)return;
+        const iF=(p.flipX&&s.x<p.x)||(!p.flipX&&s.x>p.x);
+        if(gameState.shieldActive&&iF&&!gameState.shieldReloading){Audio.block();if(!isP)s.setVelocityX(s.x<p.x?-600:600);tSR();return;}
+        takeDamage(1);if(isP)s.destroy();
     };
-
-    this.physics.add.overlap(player,enemies,(p,e)=>handleCollision(p, e, false));
-    this.physics.add.overlap(player,enemyArrows,(p,a)=>handleCollision(p, a, true));
-    this.physics.add.overlap(player,fireballs,(p,f)=>handleCollision(p, f, true));
+    this.physics.add.overlap(player,enemies,(p,e)=>hC(p,e,false));
+    this.physics.add.overlap(player,enemyArrows,(p,a)=>hC(p,a,true));
+    this.physics.add.overlap(player,fireballs,(p,f)=>hC(p,f,true));
     this.physics.add.overlap(arrows,enemies,(a,e)=>{a.destroy();hitEnemy(e);});
     this.physics.add.overlap(arrows,bossGroup,(a,d)=>{a.destroy();hitDragon();});
     
     generateLevel(this);this.physics.pause();updateHUD();
 }
 
-function triggerShieldReload(){
+function tSR(){
     gameState.shieldReloading=true;gameState.shieldActive=false;shieldSprite.setVisible(false);
     gameState.playerInvuln=true;sceneRef.time.delayedCall(300,()=>gameState.playerInvuln=false);
-    sceneRef.time.delayedCall(2000,()=>{gameState.shieldReloading=false;});
+    sceneRef.time.delayedCall(1000,()=>{gameState.shieldReloading=false;});
 }
 
 function generateLevel(scene){
@@ -157,7 +150,12 @@ function takeDamage(a){
 }
 
 function updateHUD(){let l=`Level: ${gameState.level} | Coins: ${gameState.coins}/20`,h=document.getElementById('hud');if(gameState.isBossLevel){l=`BOSS FIGHT`;h.style.color='white';h.style.textShadow='2px 2px #000';}else{h.style.color='#222';h.style.textShadow='1px 1px #fff';}document.getElementById('stats-left').innerText=l;document.getElementById('stats-right').innerText=`Time: ${(gameState.totalTime+(gameState.isStarted?gameState.elapsedTime:0)).toFixed(1)}s | HP: ${'❤️'.repeat(Math.max(0,gameState.hp))}`;}
-function levelClear(){gameState.totalTime+=gameState.elapsedTime;document.getElementById('level-clear').style.display='block';document.getElementById('level-time').innerText=`Time: ${gameState.elapsedTime.toFixed(2)}s`;sceneRef.physics.pause();}
+function levelClear(){
+    gameState.totalTime+=gameState.elapsedTime;
+    if(gameState.isBossLevel) showVictory();
+    else { document.getElementById('level-clear').style.display='block'; document.getElementById('level-time').innerText=`Time: ${gameState.elapsedTime.toFixed(2)}s`; }
+    sceneRef.physics.pause();
+}
 function die(){gameState.gameOver=true;document.getElementById('game-over').style.display='block';sceneRef.physics.pause();}
 function pauseGame(){gameState.isPaused=true;document.getElementById('pause-menu').style.display='block';sceneRef.physics.pause();}
 function showVictory(){document.getElementById('victory-screen').style.display='block';document.getElementById('winner-name').innerText=`WINNER: ${gameState.playerName}`;document.getElementById('total-time').innerText=`Final Time: ${gameState.totalTime.toFixed(2)}s`;let s=JSON.parse(localStorage.getItem('mc_scores_v2')||'[]');s.push({name:gameState.playerName,time:gameState.totalTime});s.sort((a,b)=>a.time-b.time);localStorage.setItem('mc_scores_v2',JSON.stringify(s.slice(0,5)));}
